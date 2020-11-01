@@ -20,7 +20,7 @@
         </div>
     </div>
 
-    <canvas id="test"></canvas><br>
+    
 
     <div class="container">
         
@@ -40,7 +40,7 @@ let birdW=60;
 let birdH=40;
 let birdY;
 
-let playername=prompt("what is your name ??");
+
 
 let beckyH=55;
 let beckyW=45;
@@ -61,6 +61,11 @@ let ctx;
 let score=100;
 let lives=3;
 const life=[];
+//sounds
+let startSound;
+let endSound;
+let cactusHitSound;
+let jumpSound;
 
 const beckysIMG=["./assets/evil_dino.svg","https://www.flaticon.com/svg/static/icons/svg/2466/2466824.svg","./assets/T_rex.svg"];
 
@@ -69,6 +74,12 @@ const beckysIMG=["./assets/evil_dino.svg","https://www.flaticon.com/svg/static/i
 
 function startGame(){
        gameArea.start();
+
+        //..........................creating audio files for the game !!!,,,,,,,,,,,,,,,,,,,,,,,,
+      startSound= new gameArea.sound("./sounds/startscreen.mp3");
+      endSound = new gameArea.sound("./sounds/endscreen.mp3");
+      jumpSound = new gameArea.sound("./sounds/jump.mp3");
+      cactusHitSound = new gameArea.sound("./sounds/cactus_hit.mp3");
        
     
        becky=new imageBuilder(100,canvas_height-beckyH,beckyW,beckyH,"https://www.flaticon.com/svg/static/icons/svg/2466/2466824.svg");
@@ -83,7 +94,7 @@ function startGame(){
 
 
 var gameArea = {///////////the whole game area is in a object///////////////
-    canvas:document.getElementById("test"),
+    canvas:document.createElement("canvas"),
    
 
     start:function(){
@@ -91,6 +102,7 @@ var gameArea = {///////////the whole game area is in a object///////////////
         this.canvas.width=canvas_width;
         this.canvas.height=canvas_height;
         this.canvas.style.backgroundImage="url(https://i.ibb.co/WGx53RD/desert2.jpg)";
+        document.body.insertBefore(this.canvas, document.body.childNodes[0]);
         this.context=this.canvas.getContext("2d");
         this.frameNo=0;
         this.interval=setInterval(function(){
@@ -100,6 +112,20 @@ var gameArea = {///////////the whole game area is in a object///////////////
         document.body.addEventListener("touchstart",moveup);
         document.body.addEventListener("touchend",motion);
     },
+        sound:function(src) {//.......................................created audio constructor function here !!!..........
+          this.sound = document.createElement("audio");
+          this.sound.src = src;
+          this.sound.setAttribute("preload", "auto");
+          this.sound.setAttribute("controls", "none");
+          this.sound.style.display = "none";
+          document.body.appendChild(this.sound);
+          this.play = function(){
+            this.sound.play();
+          }
+          this.stop = function(){
+            this.sound.pause();
+          }
+      },
 
     clear:function(){
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -129,6 +155,7 @@ function drawEverything(){//...................THE DRAW EVERYTHING FUNCTION>>>>>
     myObstacles.forEach(function(cactus,i){
         if(becky.crashWith(cactus)){///checking collsion with the cactus trees//////////////////////////
             console.log("hit");
+            cactusHitSound.play();
             myObstacles.splice(i,2);//......using array splice method t delete that hit cactus +1 upcoming cactus
             i--;
             becky.reset()  ;   
@@ -151,12 +178,12 @@ function drawEverything(){//...................THE DRAW EVERYTHING FUNCTION>>>>>
     
     gameArea.frameNo+=1;
     if(gameArea.frameNo==1||everyinterval(150)){//creating obstacle array!!
-        birdY=(getRndInteger(100,480)/5);
+        birdY=(getRndInteger(100,800)/5);
         cactus_gap=(getRndInteger(-500,300)/10);
         cactus_height=(getRndInteger(450,800)/10);
        // console.log(gameArea.canvas.width+cactus_gap);
         myObstacles.push(new imageBuilder(gameArea.canvas.width+cactus_gap,gameArea.canvas.height-cactus_height,cactus_width,cactus_height,"https://www.flaticon.com/svg/static/icons/svg/3349/3349590.svg"));
-        myBridies.push(new imageBuilder(gameArea.canvas.width+cactus_gap,60+birdY,birdW,birdH,"https://www.flaticon.com/svg/static/icons/svg/1939/1939446.svg"))
+        myBridies.push(new imageBuilder(gameArea.canvas.width+cactus_gap,150+birdY,birdW,birdH,"https://www.flaticon.com/svg/static/icons/svg/1939/1939446.svg"))
     }
     // for(let i=0;i<myObstacles.length;i++){//drawing obstacles!!
     //     myObstacles[i].x-=2;
@@ -168,10 +195,10 @@ function drawEverything(){//...................THE DRAW EVERYTHING FUNCTION>>>>>
     })
     myBridies.forEach(function(bird){
         bird.x-=3;
-        bird.y+=2.0;
-        if(bird.x<=canvas_width*.60 ){
-            bird.y-=2.0 ;
-        }
+        bird.y+=Math.cos(bird.x*0.1)*5;
+        // if(bird.x<=canvas_width*.60 ){
+        //     bird.y-=2.0 ;
+        // }
         
         console.log(60+birdY);
         bird.draw();
@@ -267,8 +294,10 @@ class imageBuilder{//......................ECMA6 clss/object constructor........
                console.log("reset called")
               this.y=180;
               lives--;
+
               if(lives<=0){
                 showEndScreen=true;
+                endSound.play();
                // gameArea.stop();
               }
               this.image.src="https://www.flaticon.com/svg/static/icons/svg/2466/2466824.svg";
@@ -278,14 +307,14 @@ class imageBuilder{//......................ECMA6 clss/object constructor........
         gameArea.canvas.style.backgroundImage="url(https://i.ibb.co/WGx53RD/desert2.jpg)";
         ctx.font="20px Georgia";
         
-        ctx.fillText("Good job! "+playername+" Your Score : " + score,100,150)
+        ctx.fillText("Good job! Your Score : " + score,100,150)
         
     }
     startScreen(){
         ctx=gameArea.context;
         gameArea.canvas.style.backgroundImage="url(https://i.ibb.co/WGx53RD/desert2.jpg)";
         ctx.font="20px Georgia";
-        ctx.fillText("Good luck! "+playername,60,150)
+        ctx.fillText("Good luck! ",60,150)
     }
 }
 
@@ -336,7 +365,7 @@ function mouseClick(){
     }
     if(showStartScreen){
         becky.reset();
-        
+        startSound.play();
         lives=3;
         gameArea.frameNo=0;
         showStartScreen=false;
