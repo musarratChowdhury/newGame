@@ -60,7 +60,7 @@ var keyboardMoveUp=false;
 
 let ctx;
 let score=100;
-let lives=3;
+let lives=5;
 const life=[];
 //sounds
 let startSound;
@@ -371,7 +371,7 @@ function mouseClick(){
     if(showStartScreen){
         becky.reset();
         startSound.play();
-        lives=3;
+        lives=5;
         gameArea.frameNo=0;
         showStartScreen=false;
     }
